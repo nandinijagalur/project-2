@@ -15,4 +15,7 @@ stages:
     jobs:
       - job: init plan
         steps:
-          - task: 
+         - task: TerraformInstaller@1
+           inputs:
+             terraformVersion: 'latest'
+          
