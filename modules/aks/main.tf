@@ -19,7 +19,8 @@ default_node_pool {
 network_profile {
     network_plugin = "azure"
     network_policy = "azure"
-    service_cidr      = "10.2.0.0/16"
-    dns_service_ip    = "10.2.0.10"
-  }
+    service_cidr     = var.service_cidr
+    dns_service_ip   = var.dns_service_ip
+
+}
 }
