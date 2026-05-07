@@ -4,19 +4,29 @@
 # https://aka.ms/yaml
 
 trigger:
-- main
+  - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+
+variables:
+  TF_WORKING_DIR: '$(System.DefaultWorkingDirectory)/terraform'
+  SERVICE_CONNECTION: 'azure-connection'
 
 stages:
-  - stage: terraform init-plan
-    displayName: terraform init-plan
+  - stage: Terraform_Deployment
+    displayName: "Terraform Deployment"
+
     jobs:
-      - job: init plan
+      - job: TerraformJob
+        displayName: "Terraform Init Validate Plan Apply"
+
         steps:
-         - task: TerraformInstaller@1
-           displayName: "Install Terraform"
-           inputs:
-             terraformVersion: 'latest'
+
+          # Install Terraform
+          - task: TerraformInstaller@1
+            displayName: "Install Terraform"
+            inputs:
+              terraformVersion: 'latest'
+
           
