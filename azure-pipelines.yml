@@ -14,21 +14,21 @@ variables:
 
 steps:
 
-# -----------------------------
-# 1. Checkout GitHub repo
-# -----------------------------
+
+#  Checkout GitHub repo
+
 - checkout: self
 
-# -----------------------------
-# 2. Install Terraform
-# -----------------------------
+
+#  Install Terraform
+
 - task: TerraformInstaller@1
   displayName: "Install Terraform"
   inputs:
     terraformVersion: 'latest'
 
-# -----------------------------
-# 3. Terraform Init (DEV backend)
+
+#  Terraform Init (DEV backend)
 # -----------------------------
 - task: TerraformTask@5
   displayName: "Terraform Init - DEV"
@@ -43,7 +43,7 @@ steps:
     workingDirectory: '$(terraformWorkingDir)'
 
 # -----------------------------
-# 4. Terraform Validate
+#  Terraform Validate
 # -----------------------------
 - task: TerraformTask@5
   displayName: "Terraform Validate"
@@ -53,7 +53,7 @@ steps:
     workingDirectory: '$(terraformWorkingDir)'
 
 # -----------------------------
-# 5. Terraform Plan (DEV)
+# Terraform Plan (DEV)
 # -----------------------------
 - task: TerraformTask@5
   displayName: "Terraform Plan - DEV"
@@ -64,7 +64,7 @@ steps:
     workingDirectory: '$(terraformWorkingDir)'
 
 # -----------------------------
-# 6. Terraform Apply (DEV)
+#  Terraform Apply (DEV)
 # -----------------------------
 - task: TerraformTask@5
   displayName: "Terraform Apply - DEV"
