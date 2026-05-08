@@ -10,7 +10,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'
+  terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'# Specifies the directory where Terraform configuration files for the DEV environment are located
 
 steps:
 
