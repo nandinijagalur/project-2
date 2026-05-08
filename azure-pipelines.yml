@@ -4,39 +4,93 @@
 # https://aka.ms/yaml
 
 trigger:
-  - main
+- main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
 
 variables:
-  DEV_WORKING_DIR: '$(System.DefaultWorkingDirectory)/terraform/dev'
-  
   SERVICE_CONNECTION: 'azure-connection'
 
 stages:
-  - stage: Terraform_Deployment
-    displayName: "Terraform Deployment"
 
-    jobs:
-      - job: TerraformJob
-        displayName: "Terraform Init Validate Plan Apply"
+# ================= DEV STAGE =================
+- stage: DEV
+  displayName: Deploy to Dev
+  variables:
+    TF_WORKING_DIR: 'env/dev'
 
-        steps:
+  jobs:
+  - job: terraform_dev
+    steps:
 
-          # Install Terraform
-          - task: TerraformInstaller@1
-            displayName: "Install Terraform"
-            inputs:
-              terraformVersion: 'latest'
-          - task: TerraformTask@5
-            inputs:
-                provider: 'azurerm'
-                command: 'init'
-                backendServiceArm: 'azure-connection'
-                backendAzureRmStorageAccountName: 'dev1storagecanadacentral'
-                backendAzureRmContainerName: 'tfstate'
-                backendAzureRmKey: 'dev.terraform.tfstate'
-            
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: 'latest'
 
-          
+    - task: TerraformTaskV4@4
+      displayName: Terraform Init (Dev)
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(TF_WORKING_DIR)'
+        backendServiceArmServiceConnection: '$(SERVICE_CONNECTION)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Plan (Dev)
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(TF_WORKING_DIR)'
+        environmentServiceNameAzureRM: '$(SERVICE_CONNECTION)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Apply (Dev)
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(TF_WORKING_DIR)'
+        environmentServiceNameAzureRM: '$(SERVICE_CONNECTION)'
+
+# ================= PROD STAGE =================
+- stage: PROD
+  displayName: Deploy to Prod
+  dependsOn: DEV
+  condition: succeeded()
+
+  variables:
+    TF_WORKING_DIR: 'env/prod'
+
+  jobs:
+  - job: terraform_prod
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Init (Prod)
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(TF_WORKING_DIR)'
+        backendServiceArmServiceConnection: '$(SERVICE_CONNECTION)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Plan (Prod)
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(TF_WORKING_DIR)'
+        environmentServiceNameAzureRM: '$(SERVICE_CONNECTION)'
+
+    - task: TerraformTaskV4@4
+      displayName: Terraform Apply (Prod)
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(TF_WORKING_DIR)'
+        environmentServiceNameAzureRM: '$(SERVICE_CONNECTION)'
