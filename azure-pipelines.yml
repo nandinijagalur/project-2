@@ -10,43 +10,67 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  SERVICE_CONNECTION: 'azure-connection'
+  terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'
 
-stages:
+steps:
 
-- stage: DEV
-  displayName: Deploy to Dev
-  variables:
-    TF_WORKING_DIR: 'env/dev'
+# -----------------------------
+# 1. Checkout GitHub repo
+# -----------------------------
+- checkout: self
 
-  jobs:
-  - job: terraform_dev
-    steps:
+# -----------------------------
+# 2. Install Terraform
+# -----------------------------
+- task: TerraformInstaller@1
+  displayName: "Install Terraform"
+  inputs:
+    terraformVersion: 'latest'
 
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: 'latest'
+# -----------------------------
+# 3. Terraform Init (DEV backend)
+# -----------------------------
+- task: TerraformTask@5
+  displayName: "Terraform Init - DEV"
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    backendServiceArm: 'azure-connection'
+    backendAzureRmResourceGroupName: 'NCPL'
+    backendAzureRmStorageAccountName: 'dev1storagecanadacentral'
+    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmKey: 'dev.terraform.tfstate'
+    workingDirectory: '$(terraformWorkingDir)'
 
-    - task: TerraformTaskV4@4
-      displayName: Terraform Init (Dev)
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(TF_WORKING_DIR)'
-        backendServiceArm: '$(SERVICE_CONNECTION)'   # ✅ FIX
+# -----------------------------
+# 4. Terraform Validate
+# -----------------------------
+- task: TerraformTask@5
+  displayName: "Terraform Validate"
+  inputs:
+    provider: 'azurerm'
+    command: 'validate'
+    workingDirectory: '$(terraformWorkingDir)'
 
-    - task: TerraformTaskV4@4
-      displayName: Terraform Plan (Dev)
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        workingDirectory: '$(TF_WORKING_DIR)'
-        environmentServiceNameAzureRM: '$(SERVICE_CONNECTION)'
+# -----------------------------
+# 5. Terraform Plan (DEV)
+# -----------------------------
+- task: TerraformTask@5
+  displayName: "Terraform Plan - DEV"
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    environmentServiceNameAzureRM: 'azure-connection'
+    workingDirectory: '$(terraformWorkingDir)'
 
-    - task: TerraformTaskV4@4
-      displayName: Terraform Apply (Dev)
-      inputs:
-        provider: 'azurerm'
-        command: 'apply'
-        workingDirectory: '$(TF_WORKING_DIR)'
-        environmentServiceNameAzureRM: '$(SERVICE_CONNECTION)'
+# -----------------------------
+# 6. Terraform Apply (DEV)
+# -----------------------------
+- task: TerraformTask@5
+  displayName: "Terraform Apply - DEV"
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    environmentServiceNameAzureRM: 'azure-connection'
+    commandOptions: '-auto-approve'
+    workingDirectory: '$(terraformWorkingDir)'
