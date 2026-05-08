@@ -10,7 +10,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  TF_WORKING_DIR: '$(System.DefaultWorkingDirectory)/terraform'
+  DEV_WORKING_DIR: '$(System.DefaultWorkingDirectory)/terraform/dev'
+  
   SERVICE_CONNECTION: 'azure-connection'
 
 stages:
@@ -28,5 +29,14 @@ stages:
             displayName: "Install Terraform"
             inputs:
               terraformVersion: 'latest'
+          - task: TerraformTask@5
+            inputs:
+                provider: 'azurerm'
+                command: 'init'
+                backendServiceArm: 'azure-connection'
+                backendAzureRmStorageAccountName: 'dev1storagecanadacentral'
+                backendAzureRmContainerName: 'tfstate'
+                backendAzureRmKey: 'dev.terraform.tfstate'
+            
 
           
