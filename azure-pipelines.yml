@@ -42,6 +42,7 @@ steps:
     command: 'plan'
     environmentServiceNameAzureRM: 'azure-connection'
     workingDirectory: '$(Build.SourcesDirectory)/env/dev'
+    commandOptions: '-var-file=dev.tfvars'
 
 # Terraform Apply
 - task: TerraformTask@5
@@ -51,3 +52,4 @@ steps:
     command: 'apply'
     environmentServiceNameAzureRM: 'azure-connection'
     workingDirectory: '$(Build.SourcesDirectory)/env/dev'
+    commandOptions: '-var-file=dev.tfvars -auto-approve'
