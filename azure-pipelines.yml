@@ -5,36 +5,43 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
+  
   terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'
 
 steps:
 - checkout: self
 
 - task: TerraformInstaller@1
-  displayName: Install Terraform
   inputs:
     terraformVersion: 'latest'
 
-# Init (backend comes from backend.tf)
 - task: TerraformTask@5
-  displayName: Terraform Init - DEV
+  displayName: Terraform Init
   inputs:
     provider: 'azurerm'
     command: 'init'
     backendServiceArm: 'azure-connection'
     workingDirectory: '$(terraformWorkingDir)'
 
-# Validate
-- script: terraform validate
-  workingDirectory: $(terraformWorkingDir)
+- task: TerraformTask@5
   displayName: Terraform Validate
+  inputs:
+    provider: 'azurerm'
+    command: 'validate'
+    workingDirectory: '$(terraformWorkingDir)'
 
-# Plan
-- script: terraform plan -out=tfplan
-  workingDirectory: $(terraformWorkingDir)
-  displayName: Terraform Plan - DEV
+- task: TerraformTask@5
+  displayName: Terraform Plan
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    environmentServiceNameAzureRM: 'azure-connection'
+    workingDirectory: '$(terraformWorkingDir)'
 
-# Apply
-- script: terraform apply -auto-approve tfplan
-  workingDirectory: $(terraformWorkingDir)
-  displayName: Terraform Apply - DEV
+- task: TerraformTask@5
+  displayName: Terraform Apply
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    environmentServiceNameAzureRM: 'azure-connection'
+    workingDirectory: '$(terraformWorkingDir)'
