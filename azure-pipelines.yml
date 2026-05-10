@@ -28,49 +28,46 @@ steps:
     terraformVersion: 'latest'
 
 
-#  Terraform Init (DEV backend)
-# -----------------------------
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'
+
+steps:
+
+# Checkout repo
+- checkout: self
+
+# Install Terraform
+- task: TerraformInstaller@1
+  displayName: "Install Terraform"
+  inputs:
+    terraformVersion: 'latest'
+
+# Terraform Init (reads backend from backend.tf)
 - task: TerraformTask@5
   displayName: "Terraform Init - DEV"
   inputs:
     provider: 'azurerm'
     command: 'init'
     backendServiceArm: 'azure-connection'
-    backendAzureRmResourceGroupName: 'NCPL'
-    backendAzureRmStorageAccountName: 'dev1storagecanadacentral'
-    backendAzureRmContainerName: 'tfstate'
-    backendAzureRmKey: 'dev.terraform.tfstate'
     workingDirectory: '$(terraformWorkingDir)'
 
-# -----------------------------
-#  Terraform Validate
-# -----------------------------
-- task: TerraformTask@5
+# Terraform Validate
+- script: terraform validate
+  workingDirectory: $(terraformWorkingDir)
   displayName: "Terraform Validate"
-  inputs:
-    provider: 'azurerm'
-    command: 'validate'
-    workingDirectory: '$(terraformWorkingDir)'
 
-# -----------------------------
-# Terraform Plan (DEV)
-# -----------------------------
-- task: TerraformTask@5
+# Terraform Plan (creates plan file)
+- script: terraform plan -out=tfplan
+  workingDirectory: $(terraformWorkingDir)
   displayName: "Terraform Plan - DEV"
-  inputs:
-    provider: 'azurerm'
-    command: 'plan'
-    environmentServiceNameAzureRM: 'azure-connection'
-    workingDirectory: '$(terraformWorkingDir)'
 
-# -----------------------------
-#  Terraform Apply (DEV)
-# -----------------------------
-- task: TerraformTask@5
+# Terraform Apply (uses same plan)
+- script: terraform apply -auto-approve tfplan
+  workingDirectory: $(terraformWorkingDir)
   displayName: "Terraform Apply - DEV"
-  inputs:
-    provider: 'azurerm'
-    command: 'apply'
-    environmentServiceNameAzureRM: 'azure-connection'
-    commandOptions: '-auto-approve'
-    workingDirectory: '$(terraformWorkingDir)'
