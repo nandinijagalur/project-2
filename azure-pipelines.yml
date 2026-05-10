@@ -20,7 +20,7 @@ steps:
   inputs:
     provider: 'azurerm'
     command: 'init'
-    backendServiceArm: 'azure-connection'
+    
     workingDirectory: '$(terraformWorkingDir)'
 
 - task: TerraformTask@5
