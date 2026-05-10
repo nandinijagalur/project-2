@@ -1,33 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-trigger:
-- main
-
-pool:
-  vmImage: ubuntu-latest
-
-variables:
-  terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'# Specifies the directory where Terraform configuration files for the DEV environment are located
-
-steps:
-
-
-#  Checkout GitHub repo
-
-- checkout: self
-
-
-#  Install Terraform
-
-- task: TerraformInstaller@1
-  displayName: "Install Terraform"
-  inputs:
-    terraformVersion: 'latest'
-
-
 trigger:
 - main
 
@@ -38,36 +8,33 @@ variables:
   terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'
 
 steps:
-
-# Checkout repo
 - checkout: self
 
-# Install Terraform
 - task: TerraformInstaller@1
-  displayName: "Install Terraform"
+  displayName: Install Terraform
   inputs:
     terraformVersion: 'latest'
 
-# Terraform Init (reads backend from backend.tf)
+# Init (backend comes from backend.tf)
 - task: TerraformTask@5
-  displayName: "Terraform Init - DEV"
+  displayName: Terraform Init - DEV
   inputs:
     provider: 'azurerm'
     command: 'init'
     backendServiceArm: 'azure-connection'
     workingDirectory: '$(terraformWorkingDir)'
 
-# Terraform Validate
+# Validate
 - script: terraform validate
   workingDirectory: $(terraformWorkingDir)
-  displayName: "Terraform Validate"
+  displayName: Terraform Validate
 
-# Terraform Plan (creates plan file)
+# Plan
 - script: terraform plan -out=tfplan
   workingDirectory: $(terraformWorkingDir)
-  displayName: "Terraform Plan - DEV"
+  displayName: Terraform Plan - DEV
 
-# Terraform Apply (uses same plan)
+# Apply
 - script: terraform apply -auto-approve tfplan
   workingDirectory: $(terraformWorkingDir)
-  displayName: "Terraform Apply - DEV"
+  displayName: Terraform Apply - DEV
