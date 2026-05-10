@@ -4,44 +4,50 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-variables:
-  
-  terraformWorkingDir: '$(Build.SourcesDirectory)/env/dev'
-
 steps:
 - checkout: self
 
+# Install Terraform
 - task: TerraformInstaller@1
+  displayName: Install Terraform
   inputs:
     terraformVersion: 'latest'
 
-- task: TerraformTask@4
-  displayName: Terraform Init
+# Terraform Init (HARDCODED BACKEND HERE)
+- task: TerraformTask@5
+  displayName: Terraform Init - DEV
   inputs:
     provider: 'azurerm'
     command: 'init'
-    
-    workingDirectory: '$(terraformWorkingDir)'
+    backendServiceArm: 'azure-connection'   # your service connection name
+    backendAzureRmResourceGroupName: 'NCPL'
+    backendAzureRmStorageAccountName: 'dev1storagecanadacentral'
+    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmKey: 'dev.terraform.tfstate'
+    workingDirectory: '$(Build.SourcesDirectory)/env/dev'
 
+# Terraform Validate
 - task: TerraformTask@5
   displayName: Terraform Validate
   inputs:
     provider: 'azurerm'
     command: 'validate'
-    workingDirectory: '$(terraformWorkingDir)'
+    workingDirectory: '$(Build.SourcesDirectory)/env/dev'
 
+# Terraform Plan
 - task: TerraformTask@5
-  displayName: Terraform Plan
+  displayName: Terraform Plan - DEV
   inputs:
     provider: 'azurerm'
     command: 'plan'
     environmentServiceNameAzureRM: 'azure-connection'
-    workingDirectory: '$(terraformWorkingDir)'
+    workingDirectory: '$(Build.SourcesDirectory)/env/dev'
 
+# Terraform Apply
 - task: TerraformTask@5
-  displayName: Terraform Apply
+  displayName: Terraform Apply - DEV
   inputs:
     provider: 'azurerm'
     command: 'apply'
     environmentServiceNameAzureRM: 'azure-connection'
-    workingDirectory: '$(terraformWorkingDir)'
+    workingDirectory: '$(Build.SourcesDirectory)/env/dev'
